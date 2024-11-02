@@ -11,8 +11,8 @@
                 <div class="p-6 text-gray-900 text-center text-2xl">
                     {{ __("Hola, bienvenido ") . $user->name . "!"}}
 
-                    <div>
-                        <h1 class="text-xl">PRUEBA1</h1>
+                    <div class="w-full text-center p-4 md:p-8 m-2">
+                        <h1 class="text-xl">Aquí se mostrarán las estadísticas de tu empresa.</h1>
                     </div>
                 </div>
             </div>

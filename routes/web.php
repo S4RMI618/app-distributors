@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('orders', OrderController::class);
 });
 
+/* ------------------------------------------ Rutas consumo API --------------------------------------*/
 /* Creación de productos */
 Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
 Route::get('/products/get', [ProductController::class, 'getProducts'])->name('products.get');
@@ -44,6 +45,9 @@ Route::get('/products/search', [ProductController::class, 'searchProducts'])->na
 
 /* Busqueda de Customers */
 Route::get('/customers/search', [CustomerDetailController::class, 'search'])->name('customers.search');
+
+/* Busqueda de Orders */
+Route::get('/orders/search/{companyId}/{status}', [OrderController::class, 'downloadOrders'])->name('orders.downloadOrders');
 
 /* Route::prefix('AppPedidos')->group(function () {
     Route::get('products/search', [ProductController::class, 'search'])->name('products.search');

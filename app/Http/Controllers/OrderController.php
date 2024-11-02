@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+
 class OrderController extends Controller
 {
     public function index()
@@ -19,7 +20,7 @@ class OrderController extends Controller
 
         // Los administradores ven todas las órdenes, los distribuidores solo las suyas
         $orders = $user->role === 'admin'
-            ? Order::latest()->paginate(15)  // Ordenar por fecha de creación descendente y paginar
+            ? Order::latest()->get()// Ordenar por fecha de creación descendente y paginar
             : Order::where('user_id', $user->id)->latest()->paginate(15);
 
         return view('orders.index', compact('orders'));
@@ -195,6 +196,54 @@ class OrderController extends Controller
         $this->flashNotification('success', 'Orden Eliminada', 'La orden ha sido eliminada exitosamente.');
         return redirect()->route('orders.index');
     }
+
+    /* FUNCIONES APARTE DEL CRUD */
+    /* Descargar órdenes del sistema mediante url*/
+    public function downloadOrders($companyId, $status)
+    {
+        // Validar que el estado sea 0 o 1
+        if (!in_array($status, [0, 1])) {
+            return response()->json(['error' => 'Estado inválido'], 400);
+        }
+
+        // Convertir el parámetro de estado en el texto correspondiente
+        $statusText = $status == 0 ? 'pendiente' : 'facturado';
+
+        // Obtener las órdenes según los parámetros
+        $orders = Order::whereHas('user', function ($query) use ($companyId) {
+            $query->where('company_id', $companyId);
+        })
+            ->where('status', $statusText)
+            ->with(['customer', 'products', 'user']) 
+            ->get();
+
+        // Formato JSON de la respuesta
+        $formattedOrders = $orders->map(function ($order) {
+            return [
+                'document' => $order->id,
+                'customer' => [
+                    'identification' => $order->customer->identification, 
+                    'name' => $order->customer->full_name, 
+                ],
+                'user' => $order->user->name,
+                'status' => $order->status,
+                "total" => $order->total,
+                'products' => $order->products->map(function ($product) {
+                    return [
+                        'name' => $product->name,
+                        'code' => $product->code,
+                        'base_price' => $product->base_price,
+                        'tax_rate' => $product->tax_rate,
+                        'company_id' => $product->company_id,
+                    ];
+                }),
+            ];
+        });
+
+        // Devolver las órdenes como un arreglo JSON
+        return response()->json($formattedOrders);
+    }
+
 
     private function flashNotification($type, $title, $message)
     {
