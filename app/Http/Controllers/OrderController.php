@@ -56,6 +56,7 @@ class OrderController extends Controller
             'products.*' => 'exists:products,id',
             'quantities' => 'required|array',
             'quantities.*' => 'numeric|min:1',
+            'observations' => 'nullable|string|max:255',
         ]);
 
         // Crear una nueva orden
@@ -66,6 +67,7 @@ class OrderController extends Controller
         $order->subtotal = 0; // Se calculará después
         $order->total_tax = 0; // Se calculará después
         $order->total = 0; // Se calculará después
+        $order->observations = $request->observations;
         $order->save();
 
         // Variables para acumular el subtotal, impuestos y total
@@ -131,6 +133,7 @@ class OrderController extends Controller
             'products.*' => 'exists:products,id',
             'quantities' => 'required|array',
             'quantities.*' => 'numeric|min:1',
+            'observations' => 'nullable|string|max:255',
         ]);
 
         // Actualizar la información básica de la orden
@@ -139,6 +142,7 @@ class OrderController extends Controller
         $order->subtotal = 0;
         $order->total_tax = 0;
         $order->total = 0;
+        $order->observations = $request->observations;
         $order->save();
 
         // Eliminar los productos anteriores de la orden
@@ -235,6 +239,7 @@ class OrderController extends Controller
                         'base_price' => $product->base_price,
                         'tax_rate' => $product->tax_rate,
                         'company_id' => $product->company_id,
+                        'quantity' => $product->pivot->quantity,
                     ];
                 }),
             ];
@@ -242,6 +247,16 @@ class OrderController extends Controller
 
         // Devolver las órdenes como un arreglo JSON
         return response()->json($formattedOrders);
+    }
+
+    public function updateOrderStatus($orderId)
+    {
+        // Buscar la orden por su ID
+        $order = Order::findOrFail($orderId);
+
+        // Actualizar el estado de la orden
+        $order->update(['status' => 'facturado']);	
+        return response()->json(['message' => 'Estado de la orden actualizado']);
     }
 
 

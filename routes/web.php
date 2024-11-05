@@ -48,6 +48,8 @@ Route::get('/customers/search', [CustomerDetailController::class, 'search'])->na
 
 /* Busqueda de Orders */
 Route::get('/orders/search/{companyId}/{status}', [OrderController::class, 'downloadOrders'])->name('orders.downloadOrders');
+Route::get('/orders/update/{orderId}', [OrderController::class, 'updateOrderStatus']);
+
 
 /* Route::prefix('AppPedidos')->group(function () {
     Route::get('products/search', [ProductController::class, 'search'])->name('products.search');

@@ -52,22 +52,23 @@
                             <x-input-label for="selected_products" :value="__('Productos Seleccionados')" />
                             <div id="selected_products_list" class="block mt-1 w-full rounded-md">
                                 <!-- Aquí se agregarán los productos seleccionados -->
+                                
                             </div>
                         </div>
 
                         <template id="product-template">
                             <div
                                 class="product-item flex flex-wrap justify-between items-center mt-2 p-2 bg-gray-100 rounded-md">
-                                <span class="product-name font-medium w-full text-center text-1xl"></span>
-                                <div class="flex w-full items-center justify-between ">
+                                <span class="product-name font-medium w-full text-center text-1xl bg-gray-200 rounded-md p-1"></span>
+                                <div class="flex w-full items-center justify-between md:justify-around gap-4 py-2">
                                     <div class="flex items-center">
-                                        <x-input-label for="quantity" class="mr-2">Cantidad:</x-input-label>
+                                        <x-input-label for="quantity" class="mr-1">Cantidad:</x-input-label>
                                         <input type="number" name="quantities[]"
-                                            class="quantity-input block w-16 rounded-md border border-gray-300 px-2 py-1 tex-center"
+                                            class="quantity-input block w-12 md:w-14 rounded-md border border-gray-300 px-2 py-1 tex-center"
                                             min="1" value="1" onchange="updateTotals()">
                                     </div>
                                     <div class="product-subtotal font-medium">
-                                        Subtotal: $<span class="subtotal-amount">0.00</span>
+                                        Valor: $<span class="subtotal-amount">0.00</span>
                                     </div>
                                     <input type="hidden" name="products[]" class="product-input">
                                     <input type="hidden" name="product_prices[]" class="product-price-input">
@@ -80,6 +81,13 @@
                                 </div>
                             </div>
                         </template>
+
+                        <!-- Sección de Observaciones -->
+                        <div class="mt-4">
+                            <x-input-label for="observations" :value="__('Observaciones')" />
+                            <textarea id="observations" name="observations" class="block mt-1 w-full rounded-md p-1 px-2 md:p-4" rows="3" placeholder="Escribe aquí las observaciones..."></textarea>
+                            <x-input-error :messages="$errors->get('observations')" class="mt-2" />
+                        </div>
 
                         <!-- Resumen del total de la orden -->
                         <div id="order_totals" class="mt-6">
@@ -154,8 +162,10 @@
                             div.classList.add('p-2', 'cursor-pointer', 'hover:bg-gray-200');
                             div.addEventListener('click', function() {
                                 showProductDetails(product);
+                                productList.classList.add('hidden');
                             });
                             productList.appendChild(div);
+                            productList.classList.remove('hidden');
                         });
                     });
             }
