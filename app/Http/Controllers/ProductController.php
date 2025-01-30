@@ -12,12 +12,14 @@ class ProductController extends Controller
         foreach ($products as $product) {
             // Busca el producto por código
             $existingProduct = Product::where('code', $product['code'])->first();
-    
+
             if ($existingProduct) {
                 // Actualiza el producto existente
                 $existingProduct->update([
                     'name' => $product['name'],
-                    'base_price' => $product['base_price'],
+                    'base_price_1' => $product['base_price_1'],
+                    'base_price_2' => $product['base_price_2'],
+                    'base_price_3' => $product['base_price_3'],
                     'tax_rate' => $product['tax_rate'],
                     'company_id' => $product['company_id'],
                     'updated_at' => now(),
@@ -27,7 +29,9 @@ class ProductController extends Controller
                 Product::create([
                     'name' => $product['name'],
                     'code' => $product['code'],
-                    'base_price' => $product['base_price'],
+                    'base_price_1' => $product['base_price_1'],
+                    'base_price_2' => $product['base_price_2'],
+                    'base_price_3' => $product['base_price_3'],
                     'tax_rate' => $product['tax_rate'],
                     'company_id' => $product['company_id'],
                     'created_at' => now(),
@@ -51,7 +55,7 @@ class ProductController extends Controller
                 'products' => 'required|array',
                 'products.*.name' => 'required|string|max:255',
                 'products.*.code' => 'required|string',
-                'products.*.base_price' => 'required|numeric',
+                'products.*.base_price_1' => 'required|numeric',
                 'products.*.tax_rate' => 'required|numeric',
                 'products.*.company_id' => 'required|integer|exists:companies,id',
             ]);
@@ -72,6 +76,12 @@ class ProductController extends Controller
             ->orWhere('code', 'LIKE', "%{$query}%")
             ->get();
 
+/*         if ($products->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No se encontraron productos.'
+            ]);
+        } */
         return response()->json($products);
     }
 }

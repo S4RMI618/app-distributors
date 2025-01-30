@@ -16,6 +16,7 @@ class OrderProduct extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'price_final',
         'quantity',
         'subtotal',
         'total_tax',
@@ -23,6 +24,7 @@ class OrderProduct extends Model
     ];
 
     protected $casts = [
+        'price_final', 'decimal:2',
         'quantity' => 'decimal:2',
         'subtotal' => 'decimal:2',
         'total_tax' => 'decimal:2',

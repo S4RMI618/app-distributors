@@ -87,6 +87,61 @@ class CustomerDetailController extends Controller
         return response()->json($customers);
     }
 
+    public function createCustomers($customers){
+        try {
+            foreach ($customers as $customer) {
+                $existingCustomer = CustomerDetail::where('identification', $customer['identification'])->first();
+        
+                if ($existingCustomer) {
+                    // Actualiza el producto existente
+                    $existingCustomer->update([
+                        'identification' => $customer['identification'],
+                        'full_name' => $customer['full_name'],
+                        'email' => $customer['email'],
+                        'phone' => $customer['phone'],
+                        'address' => $customer['address'],
+                        'company_id' => $customer['company_id'],
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    CustomerDetail::create([
+                        'identification' => $customer['identification'],
+                        'full_name' => $customer['full_name'],
+                        'email' => $customer['email'],
+                        'phone' => $customer['phone'],
+                        'address' => $customer['address'],
+                        'company_id' => $customer['company_id'],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }catch (\Exception $e){
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function storeCustomers(Request $request){
+        try {
+            $request->validate([
+                'customers' => 'required|array',
+                'customers.*.identification' => 'required|numeric|digits:20',
+                'customers.*.full_name' => 'required|string|max:255',
+                'customers.*.email' => 'email',
+                'customers.*.phone' => 'string',
+                'customers.*.address' => 'string',
+                'customers.*.company_id' => 'required|integer|exists:companies,id',
+            ]);
+
+            $customers = $request->input('customers');
+            $this->createCustomers($customers);
+
+            return response()->json(['status' => true, 'message' => 'Clientes creados o actualizados exitosamente.']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     private function flashNotification($type, $title, $message)
     {
         session()->flash('notification', [

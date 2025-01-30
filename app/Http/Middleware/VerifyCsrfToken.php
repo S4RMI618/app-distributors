@@ -12,7 +12,8 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        '/products/store',  // Añade tu ruta aquí
-        '/products/get',  // Añade tu ruta aquí
+        '/products/store',  
+        '/products/get',
+        'customer-details/create-customers',  
     ];
 }

@@ -77,7 +77,7 @@
                                             {{ $product->name }} ({{ $product->code }})
                                         </td>
                                         <td class="px-4 py-4 text-sm text-gray-900 text-center">
-                                            ${{ number_format($product->base_price + ($product->pivot->total_tax / $product->pivot->quantity ), 2) }}
+                                            ${{ number_format(($product->pivot->price_final ), 2) }}
                                         </td>
                                         <td class="px-4 py-4 text-sm text-gray-900 text-center">
                                             {{ $product->pivot->quantity }}

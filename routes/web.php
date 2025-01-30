@@ -35,8 +35,8 @@ Route::middleware('auth')->group(function () {
 
 /* ------------------------------------------ Rutas consumo API --------------------------------------*/
 /* Creación de productos */
-Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
-Route::get('/products/get', [ProductController::class, 'getProducts'])->name('products.get');
+/* Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
+Route::get('/products/get', [ProductController::class, 'getProducts'])->name('products.get'); */
 
 /* Rutas secundarias */
 Route::get('/get-municipalities', [LocationController::class, 'getMunicipalities'])->name('get-municipalities');
@@ -45,16 +45,12 @@ Route::get('/products/search', [ProductController::class, 'searchProducts'])->na
 
 /* Busqueda de Customers */
 Route::get('/customers/search', [CustomerDetailController::class, 'search'])->name('customers.search');
+/* Creación de clientes */
+/* Route::post('/customer-details/create-customers', [CustomerDetailController::class, 'storeCustomers'])->name('customer-details.storeCustomers'); */
 
 /* Busqueda de Orders */
-Route::get('/orders/search/{companyId}/{status}', [OrderController::class, 'downloadOrders'])->name('orders.downloadOrders');
-Route::get('/orders/update/{orderId}', [OrderController::class, 'updateOrderStatus']);
-
-
-/* Route::prefix('AppPedidos')->group(function () {
-    Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
-    Route::get('/customers/search', [CustomerDetailController::class, 'search'])->name('customers.search');
-}); */
+/* Route::get('/orders/search/{companyId}/{status}', [OrderController::class, 'downloadOrders'])->name('orders.downloadOrders');
+Route::get('/orders/update/{orderId}', [OrderController::class, 'updateOrderStatus']); */
 
 
 require __DIR__ . '/auth.php';

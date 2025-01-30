@@ -20,7 +20,7 @@ class OrderController extends Controller
 
         // Los administradores ven todas las órdenes, los distribuidores solo las suyas
         $orders = $user->role === 'admin'
-            ? Order::latest()->get()// Ordenar por fecha de creación descendente y paginar
+            ? Order::latest()->get() // Ordenar por fecha de creación descendente y paginar
             : Order::where('user_id', $user->id)->latest()->paginate(15);
 
         return view('orders.index', compact('orders'));
@@ -56,6 +56,8 @@ class OrderController extends Controller
             'products.*' => 'exists:products,id',
             'quantities' => 'required|array',
             'quantities.*' => 'numeric|min:1',
+            'selected_price_type' => 'required|array',
+            'selected_price_type.*' => 'required|numeric|min:1',
             'observations' => 'nullable|string|max:255',
         ]);
 
@@ -78,14 +80,20 @@ class OrderController extends Controller
         foreach ($request->products as $index => $productId) {
             $product = Product::findOrFail($productId);
             $quantity = $request->quantities[$index];
-            $priceWithTax = $product->getPriceWithTax();
+            $pricetype = $request->selected_price_type[$index];
+            $priceWithTax = $product->getPriceWithTax($pricetype);
 
-            $lineSubtotal = $product->base_price * $quantity;
-            $lineTotalTax = ($priceWithTax - $product->base_price) * $quantity;
+            $priceSelected = 'base_price_' . $pricetype;
+
+            $priceFinal = $product->$priceSelected;
+
+            $lineSubtotal = $product->$priceSelected * $quantity;
+            $lineTotalTax = ($priceWithTax - $product->$priceSelected) * $quantity;
             $lineTotal = $priceWithTax * $quantity;
 
             // Agregar los productos a la orden (en la tabla pivote)
             $order->products()->attach($product->id, [
+                'price_final' => $priceFinal,
                 'quantity' => $quantity,
                 'subtotal' => $lineSubtotal,
                 'total_tax' => $lineTotalTax,
@@ -118,6 +126,7 @@ class OrderController extends Controller
 
     public function update(Request $request, Order $order)
     {
+        /* dd($request->all()); */
         $user = Auth::user();
 
         // Verificar si el usuario autenticado tiene permiso para editar la orden
@@ -133,12 +142,14 @@ class OrderController extends Controller
             'products.*' => 'exists:products,id',
             'quantities' => 'required|array',
             'quantities.*' => 'numeric|min:1',
+            'selected_price_type' => 'required|array',
+            'selected_price_type.*' => 'required|numeric|min:1',
             'observations' => 'nullable|string|max:255',
         ]);
 
         // Actualizar la información básica de la orden
         $order->customer_id = $request->customer_id;
-        $order->status = $request->status;
+        /* $order->status = $request->status; */
         $order->subtotal = 0;
         $order->total_tax = 0;
         $order->total = 0;
@@ -156,14 +167,47 @@ class OrderController extends Controller
         foreach ($request->products as $index => $productId) {
             $product = Product::findOrFail($productId);
             $quantity = $request->quantities[$index];
-            $priceWithTax = $product->getPriceWithTax();
+            $pricetype = $request->selected_price_type[$index];
 
-            $lineSubtotal = $product->base_price * $quantity;
-            $lineTotalTax = ($priceWithTax - $product->base_price) * $quantity;
+            if ($pricetype <= 3) {
+                switch ($pricetype) {
+                    case '1':
+                        $priceSelected = 'base_price_1';
+                        break;
+                    case '2':
+                        $priceSelected = 'base_price_2';
+                        break;
+                    case '3':
+                        $priceSelected = 'base_price_3';
+                        break;
+                    default:
+                        # code...
+                        break;
+                }
+            }
+            $priceWithTax = $product->getPriceWithTax($pricetype);
+            //variables to compare against the selected price type, that it could be a number or a price
+            $toCompareP1 = $product->base_price_1;
+            $toCompareP2 = $product->base_price_2;
+            $toCompareP3 = $product->base_price_3;
+
+            if ($pricetype == $toCompareP1) {
+                $priceSelected = 'base_price_1';
+            } elseif ($pricetype == $toCompareP2) {
+                $priceSelected = 'base_price_2';
+            } elseif ($pricetype == $toCompareP3) {
+                $priceSelected = 'base_price_3';
+            }
+
+            $priceFinal = $product->$priceSelected;
+
+            $lineSubtotal = $product->$priceSelected * $quantity;
+            $lineTotalTax = ($priceWithTax - $product->$priceSelected) * $quantity;
             $lineTotal = $priceWithTax * $quantity;
 
             // Agregar los productos a la orden (en la tabla pivote)
             $order->products()->attach($product->id, [
+                'price_final' => $priceFinal,
                 'quantity' => $quantity,
                 'subtotal' => $lineSubtotal,
                 'total_tax' => $lineTotalTax,
@@ -218,7 +262,7 @@ class OrderController extends Controller
             $query->where('company_id', $companyId);
         })
             ->where('status', $statusText)
-            ->with(['customer', 'products', 'user']) 
+            ->with(['customer', 'products', 'user'])
             ->get();
 
         // Formato JSON de la respuesta
@@ -226,8 +270,8 @@ class OrderController extends Controller
             return [
                 'document' => $order->id,
                 'customer' => [
-                    'identification' => $order->customer->identification, 
-                    'name' => $order->customer->full_name, 
+                    'identification' => $order->customer->identification,
+                    'name' => $order->customer->full_name,
                 ],
                 'user' => $order->user->name,
                 'status' => $order->status,
@@ -242,6 +286,7 @@ class OrderController extends Controller
                         'quantity' => $product->pivot->quantity,
                     ];
                 }),
+                'observations' => $order->observations,
             ];
         });
 
@@ -255,7 +300,7 @@ class OrderController extends Controller
         $order = Order::findOrFail($orderId);
 
         // Actualizar el estado de la orden
-        $order->update(['status' => 'facturado']);	
+        $order->update(['status' => 'facturado']);
         return response()->json(['message' => 'Estado de la orden actualizado']);
     }
 
